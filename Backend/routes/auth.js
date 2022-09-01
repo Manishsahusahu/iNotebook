@@ -6,7 +6,8 @@ var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 
 const JWT_SECERT = 'IamDonManish$yesDonManish';
-// create a user using: post "/api/auth/createuser". no login required
+
+// Route:1 create a user using: post "/api/auth/createuser". no login required
 router.post('/createuser', [
    body('name', 'Name length should be geater than 2 characters').isLength({ min: 3 }),
    body('email', 'Enter a valid email address').isEmail(),
@@ -44,8 +45,42 @@ router.post('/createuser', [
       // res.json(user);
    } catch (error) {
       console.error(error.message);
-      res.status(500).send("some error occured");
+      res.status(500).send("Internal server error");
    }
 })
 
+// Route:2 create a user using: post "/api/auth/createuser". no login required
+router.post('/login', [
+   body('email', 'Enter a valid email address').isEmail(),
+   body('password', 'Password could not be blank').exists(),
+], async (req, res) => {
+   // if there are errors then return Bad request with the errors
+   const errors = validationResult(req);
+   if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+   }
+   const {email,password}=req.body;
+   try {
+      let user = await User.findOne({email});
+      if (!user) {
+         return res.status(400).json({ error: "Not matched! try again" })
+      }
+      const passwordCompare= await bcrypt.compare(password,user.password);
+      if(!passwordCompare){
+         return res.status(400).json({ error: "Not matched! try again" })
+      }
+
+      const data = {
+         user: {
+            id: user.id,
+         }
+      }
+      const authtoken = jwt.sign(data, JWT_SECERT);
+      res.json({ authtoken });
+
+   } catch (error) {
+      console.error(error.message);
+      res.status(500).send("Internal server error");
+   }
+})
 module.exports = router;
