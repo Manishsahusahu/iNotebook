@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { body, validationResult } = require('express-validator');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+const fetchuser= require('../middleware/fetchuser');
 
 const JWT_SECERT = 'IamDonManish$yesDonManish';
 
@@ -49,7 +50,7 @@ router.post('/createuser', [
    }
 })
 
-// Route:2 create a user using: post "/api/auth/createuser". no login required
+// Route:2 create a user using: post "/api/auth/login". no login required
 router.post('/login', [
    body('email', 'Enter a valid email address').isEmail(),
    body('password', 'Password could not be blank').exists(),
@@ -59,14 +60,14 @@ router.post('/login', [
    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
    }
-   const {email,password}=req.body;
+   const { email, password } = req.body;
    try {
-      let user = await User.findOne({email});
+      let user = await User.findOne({ email });
       if (!user) {
          return res.status(400).json({ error: "Not matched! try again" })
       }
-      const passwordCompare= await bcrypt.compare(password,user.password);
-      if(!passwordCompare){
+      const passwordCompare = await bcrypt.compare(password, user.password);
+      if (!passwordCompare) {
          return res.status(400).json({ error: "Not matched! try again" })
       }
 
@@ -82,5 +83,17 @@ router.post('/login', [
       console.error(error.message);
       res.status(500).send("Internal server error");
    }
-})
-module.exports = router;
+});
+
+// Route:3 get loggedin user details using: post "/api/auth/getuser". no login required
+router.post('/getuser',fetchuser, async (req, res) => {
+   try {
+      userId = req.user.id;
+      const user = await User.findById(userId).select("-password");
+      res.send(user);
+   } catch (error) {
+      console.error(error.message);
+      res.status(500).send("Internal server error");
+   }
+});
+module.exports = router; 

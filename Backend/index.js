@@ -3,7 +3,7 @@ const express = require('express')
 
 connectToMongo();
 const app = express()
-const port = 4000
+const port = 4000;
 app.use(express.json()); // middleware used for getting request.body as json to the api hit.
 
 // Available Routes
