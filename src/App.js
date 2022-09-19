@@ -8,13 +8,13 @@ import {
 	Route
 } from "react-router-dom";
 import NoteState from './context/notes/NoteState';
-import Alert from './component/Alert';
+import Login from './component/Login';
+import Signup from './component/Signup';
 
 function App() {
 	return (
 		<NoteState>
 			<Router>
-				<Alert message={"This is amazing react course"} /> 
 				<Navbar />
 				<div className="container">
 					<Switch>
@@ -23,6 +23,12 @@ function App() {
 						</Route>
 						<Route exact path="/about">
 							<About />
+						</Route>
+						<Route exact path="/login">
+							<Login />
+						</Route>
+						<Route exact path="/signup">
+							<Signup />
 						</Route>
 					</Switch>
 				</div>

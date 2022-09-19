@@ -2,58 +2,94 @@ import { useState } from "react";
 import NoteContext from "./noteContext";
 
 const NoteState = (props) => {
-    const notesInitial =[
-        {
-          "_id": "632596e898478c07e4d0c75c",
-          "user": "6310ec8b28bed9f58200466b",
-          "title": "New title ",
-          "description": "First description added to notes",
-          "tag": "Personal notes",
-          "timestamp": "2022-09-17T09:44:08.091Z",
-          "__v": 0
-        },
-        {
-          "_id": "632596f898478c07e4d0c75e",
-          "user": "6310ec8b28bed9f58200466b",
-          "title": "New title second",
-          "description": "second description added to notes",
-          "tag": "Personal notes second",
-          "timestamp": "2022-09-17T09:44:24.239Z",
-          "__v": 0
-        }
-      ]
-    const [notes, setNotes] = useState(notesInitial);
+	const host = "http://localhost:4000";
+	const notesInitial = [];
+	const [notes, setNotes] = useState(notesInitial);
 
-    // to add a note
+	// to get all notes
 
-    const addNote = (notePassed)=>{
-        let note={
-            "_id": "632596f898478c07e4d0c75e",
-            "user": "6310ec8b28bed9f58200466b",
-            "title": notePassed.title,
-            "description": notePassed.description,
-            "tag": notePassed.tag,
-            "timestamp": "2022-09-17T09:44:24.239Z",
-            "__v": 0
-          }
-        setNotes(notes.concat(note));
-    }
+	const getNotes = async () => {
+		// API CALL
+		const response = await fetch(`${host}/api/notes/fetchallnotes`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjMxMGVjOGIyOGJlZDlmNTgyMDA0NjZiIn0sImlhdCI6MTY2MzA4NTYxN30.chc1lelLDbkWPkpV294FkB9yDNAdNe2wciMrfiuG3y0'
+			}
+		});
+		const json =await response.json();
+		console.log(json);
+		// logic for adding a note
+		setNotes(json);
+	}
 
-    // to delete a note
-    const deleteNote = ()=>{
+	// to add a note
 
-    }
+	const addNote = async (title, description, tag) => {
+		// API CALL
+		const response = await fetch(`${host}/api/notes/addnote`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjMxMGVjOGIyOGJlZDlmNTgyMDA0NjZiIn0sImlhdCI6MTY2MzA4NTYxN30.chc1lelLDbkWPkpV294FkB9yDNAdNe2wciMrfiuG3y0'
+			},
+			body: JSON.stringify({title, description, tag})
+		});
+		const note =await response.json();
+		setNotes(notes.concat(note));
+	}
 
-    // to update a note.
-    const editNote = ()=>{
+	// to delete a note
+	const deleteNote = async (id) => {
+		// API CALL
+		const response = await fetch(`${host}/api/notes/deletenote/${id}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				'auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjMxMGVjOGIyOGJlZDlmNTgyMDA0NjZiIn0sImlhdCI6MTY2MzA4NTYxN30.chc1lelLDbkWPkpV294FkB9yDNAdNe2wciMrfiuG3y0'
+			} 
+		});
+		const json = response.json();
+		console.log(json);
 
-    }
+		// LOGIC FOR delete a NOTE
+		const newNote = notes.filter((note) => { return (note._id !== id); });
+		setNotes(newNote);
+	}
 
-    return (
-        <NoteContext.Provider value={{notes, addNote, deleteNote, editNote}}>
-            {props.children}
-        </NoteContext.Provider>
-    )
+	// to update a note.
+	const editNote = async (id, title, description, tag) => {
+		// API CALL
+		const response = await fetch(`${host}/api/notes/updatenote/${id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				'auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjMxMGVjOGIyOGJlZDlmNTgyMDA0NjZiIn0sImlhdCI6MTY2MzA4NTYxN30.chc1lelLDbkWPkpV294FkB9yDNAdNe2wciMrfiuG3y0'
+			},
+			body: JSON.stringify({title, description, tag})
+		});
+		const json =await response.json();
+		console.log(json);
+
+		// LOGIC FOR EDIT NOTE
+		let newNotes= JSON.parse(JSON.stringify(notes));
+		newNotes.every(element => {  // every works same as foreach except one thing that foreach doesn't work on break; but in every we can write return false as break; and return true as continue; return true is cumpolsury in the end.
+			if (element._id === id) {
+				element.title = title;
+				element.description = description;
+				element.tag = tag;
+				return false;
+			}
+			return true;
+		});
+		setNotes(newNotes);
+	}
+
+	return (
+		<NoteContext.Provider value={{ notes, addNote, deleteNote, editNote, getNotes }}>
+			{props.children}
+		</NoteContext.Provider>
+	)
 
 }
 
